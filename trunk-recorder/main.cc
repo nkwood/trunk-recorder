@@ -67,9 +67,6 @@
 
 
 using namespace std;
-namespace logging = boost::log;
-namespace src     = boost::log::sources;
-namespace sinks   = boost::log::sinks;
 
 std::vector<Source *> sources;
 std::vector<System *> systems;
@@ -1058,39 +1055,43 @@ bool monitor_system() {
   return system_added;
 }
 
-template <class F>
-void add_logs(const F & fmt)
+void init_logging()
 {
-  boost::log::add_console_log(std::clog, boost::log::keywords::format = fmt);
+  namespace logging = boost::log;
+  namespace src     = boost::log::sources;
+  namespace expr    = boost::log::expressions;
+  namespace sinks   = boost::log::sinks;
+  namespace attrs   = boost::log::attributes;
+  namespace keywords = boost::log::keywords;
+  logging::add_common_attributes();
+  logging::core::get()->add_global_attribute("Scope", attrs::named_scope());
+  logging::core::get()->set_filter(
+          logging::trivial::severity >= logging::trivial::info
+  );
+  logging::add_console_log(std::clog, keywords::format =
+      expr::stream
+          << "[" << expr::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f") << "] "
+          << "(" << expr::attr<logging::trivial::severity_level>("Severity") << ") "
+          << expr::format_named_scope("Scope", keywords::format = "<%n> ")
+          << " " << expr::smessage
+  );
+
+  logging::add_file_log(
+      keywords::file_name = "recorder_%Y%m%d.log",
+      keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0),
+      keywords::format =
+          expr::format("[%1%] (%2%)  %3%")
+          % expr::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
+          % expr::attr<logging::trivial::severity_level>("Severity")
+          % expr::smessage
+  );
 }
 
 int main(int argc, char **argv)
 {
   BOOST_STATIC_ASSERT(true) __attribute__((unused));
   signal(SIGINT, exit_interupt);
-  logging::core::get()->set_filter
-  (
-    logging::trivial::severity >= logging::trivial::info
-
-  );
-
-  boost::log::add_common_attributes();
-  boost::log::core::get()->add_global_attribute("Scope",
-                                                boost::log::attributes::named_scope());
-  boost::log::core::get()->set_filter(
-    boost::log::trivial::severity >= boost::log::trivial::info
-    );
-
-add_logs(
-  boost::log::expressions::format("[%1%] (%2%)   %3%")
-  % boost::log::expressions::
-                      format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
-  % boost::log::expressions::
-                     attr<boost::log::trivial::severity_level>("Severity")
-  % boost::log::expressions::smessage
-);
-
-
+  init_logging();
   boost::program_options::options_description desc("Options");
   desc.add_options()
     ("help,h", "Help screen")
