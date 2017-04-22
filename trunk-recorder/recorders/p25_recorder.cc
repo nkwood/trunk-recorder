@@ -327,10 +327,16 @@ State p25_recorder::get_state() {
 Rx_Status p25_recorder::get_rx_status() {
   return op25_frame_assembler->get_rx_status();
 }
+
 void p25_recorder::stop() {
   if (state == active) {
     op25_frame_assembler->clear();
-    BOOST_LOG_TRIVIAL(info) << "\t- Stopping P25 Recorder Num [" << num << "]\tTG: " << talkgroup << "\tFreq: " << chan_freq << " \tTDMA: " << phase2_tdma << "\tSlot: " << tdma_slot;
+    BOOST_LOG_TRIVIAL(info) << "[" << short_name << "]"
+                            << "\tTG: " << talkgroup
+                            << "\tFreq: " << chan_freq
+                            << "\tRecorder: " << num
+                            << "\tStopping P25 Recorder";
+    //\t- Stopping P25 Recorder Num [" << num << "]\tTG: " << talkgroup << "\tFreq: " << chan_freq << " \tTDMA: " << phase2_tdma << "\tSlot: " << tdma_slot;
     state = inactive;
     valve->set_enabled(false);
     wav_sink->close();
@@ -389,8 +395,11 @@ void p25_recorder::start(Call *call, int n) {
     if (!qpsk_mod) {
       reset();
     }
-    BOOST_LOG_TRIVIAL(info) << "\t- Starting P25 Recorder Num [" << num << "]\tTG: " << talkgroup << "\tFreq: " << chan_freq << " \tTDMA: " << call->get_phase2_tdma() << "\tSlot: " << call->get_tdma_slot();
-
+    BOOST_LOG_TRIVIAL(info) << "[" << short_name << "]"
+                            << "\tTG: " << talkgroup
+                            << "\tFreq: " << chan_freq
+                            << "\tRecorder: " << num
+                            << "\tStarting P25 Recorder";
     int offset_amount = (chan_freq - center_freq);
     prefilter->set_center_freq(offset_amount);
 
