@@ -121,8 +121,7 @@ void Call::end_call() {
                             << "\tTG: " << get_talkgroup()
                             << "\tFreq: " << get_freq() 
                             << "\tEnding Recorded Call"
-                            << " - Last Update: " << this->since_last_update()
-                            << "s\tCall Elapsed: " << this->elapsed();
+                            << "\tElapsed/Updated: " << this->elapsed() << "s/" << this->since_last_update() << "s";
 
     if (freq_count > 0) {
       Rx_Status rx_status = recorder->get_rx_status();
@@ -176,7 +175,7 @@ void Call::end_call() {
       send_call(this, sys, config);
 
     if (sys->get_upload_script().length() != 0) {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]"
+      BOOST_LOG_TRIVIAL(debug) << "[" << sys->get_short_name() << "]"
                               << "\tRunning upload script: " << shell_command.str();
       // TODO(nkw): make this a fork and log if returns error
       int rc = system(shell_command.str().c_str());

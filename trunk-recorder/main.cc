@@ -392,80 +392,93 @@ void start_recorder(Call *call, TrunkMessage message, System *sys) {
   // call->get_encrypted() << "\tFreq: " << call->get_freq();
 
   if (call->get_encrypted() == true) {
-
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " << call->get_freq() << "\tNot Recording: ENCRYPTED ";
-      return;
-    }
-
-  if (!talkgroup && (sys->get_record_unknown() == false)) {
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " << call->get_freq() << "\tNot Recording: TG not in Talkgroup File ";
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]"
+                            << "\tTG: " << call->get_talkgroup()
+                            << "\tFreq: " << call->get_freq()
+                            << "\tNot Recording: ENCRYPTED";
     return;
   }
 
-    for (vector<Source *>::iterator it = sources.begin(); it != sources.end(); it++) {
-      Source *source = *it;
+  if (!talkgroup && (sys->get_record_unknown() == false)) {
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]"
+                            << "\tTG: " << call->get_talkgroup()
+                            << "\tFreq: " << call->get_freq()
+                            << "\tNot Recording: TG not in Talkgroup File";
+    return;
+  }
 
-      if ((source->get_min_hz() <= call->get_freq()) &&
-          (source->get_max_hz() >= call->get_freq())) {
-        source_found = true;
+  for (vector<Source *>::iterator it = sources.begin(); it != sources.end();
+       it++) {
+    Source *source = *it;
 
-        if (talkgroup)
-        {
-          if (talkgroup->mode == 'A') {
-            recorder = source->get_analog_recorder(talkgroup->get_priority());
-          } else {
-            recorder = source->get_digital_recorder(talkgroup->get_priority());
-          }
+    if ((source->get_min_hz() <= call->get_freq()) &&
+        (source->get_max_hz() >= call->get_freq())) {
+      source_found = true;
+
+      if (talkgroup) {
+        if (talkgroup->mode == 'A') {
+          recorder = source->get_analog_recorder(talkgroup->get_priority());
         } else {
-          BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " << call->get_freq() << "\tTG not in Talkgroup File ";
-
-          // A talkgroup was not found from the talkgroup file.
-          if (default_mode == "analog") {
-            recorder = source->get_analog_recorder(2);
-          } else {
-            recorder = source->get_digital_recorder(2);
-          }
+          recorder = source->get_digital_recorder(talkgroup->get_priority());
         }
+      } else {
+        BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]"
+                                << "\tTG: " << call->get_talkgroup()
+                                << "\tFreq: " << call->get_freq()
+                                << "\tTG not in Talkgroup File";
 
-        int total_recorders = get_total_recorders();
-
-        if (recorder) {
-          if (message.meta.length()) {
-            BOOST_LOG_TRIVIAL(trace) << message.meta;
-          }
-          BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " << call->get_freq() << "\tStarting Recorder on Src: " << source->get_device();
-
-          recorder->start(call, total_recorders);
-          call->set_recorder(recorder);
-          call->set_state(recording);
-          recorder_found = true;
+        // A talkgroup was not found from the talkgroup file.
+        if (default_mode == "analog") {
+          recorder = source->get_analog_recorder(2);
         } else {
-          // not recording call either because the priority was too low or no
-          // recorders were available
-          return;
-        }
-
-        debug_recorder = source->get_debug_recorder();
-
-        if (debug_recorder) {
-          debug_recorder->start(call, total_recorders);
-          call->set_debug_recorder(debug_recorder);
-          call->set_debug_recording(true);
-          recorder_found = true;
-        } else {
-          // BOOST_LOG_TRIVIAL(info) << "\tNot debug recording call";
-        }
-
-        if (recorder_found) {
-          // recording successfully started.
-          return;
+          recorder = source->get_digital_recorder(2);
         }
       }
+
+      int total_recorders = get_total_recorders();
+
+      if (recorder) {
+        if (message.meta.length()) {
+          BOOST_LOG_TRIVIAL(trace) << message.meta;
+        }
+        BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]"
+                                << "\tTG: " << call->get_talkgroup()
+                                << "\tFreq: " << call->get_freq()
+                                << "\tStarting Recorder on Src: " << source->get_device();
+
+        recorder->start(call, total_recorders);
+        call->set_recorder(recorder);
+        call->set_state(recording);
+        recorder_found = true;
+      } else {
+        // not recording call either because the priority was too low or no
+        // recorders were available
+        return;
+      }
+
+      debug_recorder = source->get_debug_recorder();
+
+      if (debug_recorder) {
+        debug_recorder->start(call, total_recorders);
+        call->set_debug_recorder(debug_recorder);
+        call->set_debug_recording(true);
+        recorder_found = true;
+      } else {
+        // BOOST_LOG_TRIVIAL(info) << "\tNot debug recording call";
+      }
+
+      if (recorder_found) {
+        // recording successfully started.
+        return;
+      }
+    }
     }
 
     if (!source_found) {
-      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " << call->get_freq() << "\tNot Recording: no source covering Freq";
-
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]"
+                              << "\tTG: " << call->get_talkgroup()
+                              << "\tFreq: " << call->get_freq()
+                              << "\tNot Recording: no source covering Freq";
       return;
     }
 
@@ -600,7 +613,12 @@ void assign_recorder(TrunkMessage message, System *sys) {
 
         // are we currently recording the call?
         if (call->get_state() == recording) {
-          BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " << call->get_freq() << "\tAssign Retuning - New Freq: " << message.freq << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s";
+          BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]"
+                                  << "\tTG: " << call->get_talkgroup() 
+                                  << "\tFreq: " << call->get_freq()
+                                  << "\tNewFreq: " << message.freq
+                                  << "\tRetune (assigned)" 
+                                  << "\tElapsed/Updated: " << call->elapsed() << "s/" << call->since_last_update() << "s";
 
           int retuned = retune_recorder(message, call);
 
@@ -686,7 +704,10 @@ void update_recorder(TrunkMessage message, System *sys) {
 
     // This should help detect 2 calls being listed for the same tg
     if (call_found && (call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
-      BOOST_LOG_TRIVIAL(info) << "\tALERT! Update - Total calls: " <<  calls.size() << "\tTalkgroup: " << message.talkgroup << "\tOld Freq: " <<  call->get_freq() << "\tNew Freq: " << message.freq;
+      BOOST_LOG_TRIVIAL(info) << "\tALERT! Update - Total calls: " <<  calls.size() 
+                              << "\tTalkgroup: " << message.talkgroup 
+                              << "\tOld Freq: " <<  call->get_freq()
+                              << "\tNew Freq: " << message.freq;
     }
 
     if ((call->get_talkgroup() == message.talkgroup) && (call->get_sys_num() == message.sys_num)) {
@@ -698,7 +719,12 @@ void update_recorder(TrunkMessage message, System *sys) {
 
           // see if we can retune the recorder, sometimes you can't if there are
           // more than one
-          BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << call->get_talkgroup() << "\tFreq: " << call->get_freq() << "\tUpdate Retuning - New Freq: " << message.freq << "\tElapsed: " << call->elapsed() << "s \tSince update: " << call->since_last_update() << "s";
+          BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]" 
+                                  << "\tTG: " << call->get_talkgroup()
+                                  << "\tFreq: " << call->get_freq()
+                                  << "\tNewFreq: " << message.freq
+                                  << "\tRetune (updated)" 
+                                  << "\tElapsed/Updated: " << call->elapsed() << "s/" << call->since_last_update() << "s";
           int retuned = retune_recorder(message, call);
 
           if (!retuned) {
@@ -727,7 +753,10 @@ void update_recorder(TrunkMessage message, System *sys) {
   }
 
   if (!call_found) {
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << message.talkgroup << "\tFreq: " << message.freq << "\tCall not found for Update Message, Starting one...";
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]"
+                            << "\tTG: " << message.talkgroup 
+                            << "\tFreq: " << message.freq 
+                            << "\tCall not found for Update Message, Starting one...";
 
     assign_recorder(message, sys); // Treehouseman, Lets start the call if we
                                    // missed the GRANT message!
