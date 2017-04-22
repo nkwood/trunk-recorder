@@ -177,10 +177,12 @@ void Call::end_call() {
 
     if (sys->get_upload_script().length() != 0) {
       BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]"
-                              << "Running upload script: " << shell_command.str();
-      if (!(system(shell_command.str().c_str())))
-        BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]"
-                                 << "Upload script failed";
+                              << "\tRunning upload script: " << shell_command.str();
+      // TODO(nkw): make this a fork and log if returns error
+      int rc = system(shell_command.str().c_str());
+//      if (!(system(shell_command.str().c_str())))
+//        BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]"
+//                                 << "\tUpload script failed";
     }
   }
 
