@@ -117,9 +117,12 @@ void Call::end_call() {
     if (!recorder) {
       BOOST_LOG_TRIVIAL(error) << "Call::end_call() State is recording, but no recorder assigned!";
     }
-    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]\tTG: " << get_talkgroup() << "\tFreq: " << get_freq() << "\tEnding Recorded Call - Last Update: " << this->since_last_update() << "s\tCall Elapsed: " << this->elapsed();;
-
-
+    BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]"
+                            << "\tTG: " << get_talkgroup()
+                            << "\tFreq: " << get_freq() 
+                            << "\tEnding Recorded Call"
+                            << " - Last Update: " << this->since_last_update()
+                            << "s\tCall Elapsed: " << this->elapsed();
 
     if (freq_count > 0) {
       Rx_Status rx_status = recorder->get_rx_status();
@@ -169,13 +172,15 @@ void Call::end_call() {
     }
     this->get_recorder()->stop();
 
-    if (this->config.upload_server != "") {
+    if (this->config.upload_server != "")
       send_call(this, sys, config);
-    } else {}
 
     if (sys->get_upload_script().length() != 0) {
-      BOOST_LOG_TRIVIAL(info) << "Running upload script: " << shell_command.str();
-      int rc = system(shell_command.str().c_str());
+      BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]"
+                              << "Running upload script: " << shell_command.str();
+      if (!(system(shell_command.str().c_str())))
+        BOOST_LOG_TRIVIAL(error) << "[" << sys->get_short_name() << "]"
+                                 << "Upload script failed";
     }
   }
 
@@ -324,7 +329,7 @@ bool Call::get_emergency() {
 void Call::set_tdma_slot(int m) {
   tdma_slot = m;
   if (!phase2_tdma && tdma_slot) {
-    BOOST_LOG_TRIVIAL(error) << "WHAT! SLot is 1 and TDMA is off";
+    BOOST_LOG_TRIVIAL(error) << "WHAT! Slot is 1 and TDMA is off";
   }
 }
 
