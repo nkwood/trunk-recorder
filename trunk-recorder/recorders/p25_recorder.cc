@@ -390,7 +390,7 @@ void p25_recorder::start(Call *call, int n) {
       tdma_slot = 0;
       omega = double(system_channel_rate) / double(4800);
     }
-    costas_clock->update_omega(omega);
+    //costas_clock->update_omega(omega);
 
     if (!qpsk_mod) {
       reset();

@@ -23,22 +23,28 @@
 #include <gnuradio/blocks/multiply_const_ff.h>
 #include <gnuradio/blocks/complex_to_arg.h>
 #include <gnuradio/blocks/short_to_float.h>
+#include <gnuradio/blocks/null_sink.h>
+#include <gnuradio/blocks/stream_to_streams.h>
+
 
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/fir_filter_ccf.h>
 #include <gnuradio/filter/fft_filter_ccf.h>
 #include <gnuradio/filter/fir_filter_fff.h>
 #include <gnuradio/filter/pfb_arb_resampler_ccf.h>
+#include <gnuradio/filter/pfb_channelizer_ccf.h>
+#include <gnuradio/filter/pfb_decimator_ccf.h>
+#include <gnuradio/filter/rational_resampler_base_ccc.h>
 
 #include <gnuradio/analog/quadrature_demod_cf.h>
 #include <gnuradio/analog/feedforward_agc_cc.h>
 
 #include <gnuradio/digital/diff_phasor_cc.h>
 
-#include <op25_repeater/fsk4_demod_ff.h>
-#include <op25_repeater/fsk4_slicer_fb.h>
+#include "../../op25_repeater/include/op25_repeater/fsk4_demod_ff.h"
+#include "../../op25_repeater/include/op25_repeater/fsk4_slicer_fb.h"
 #include "../../op25_repeater/include/op25_repeater/p25_frame_assembler.h"
-#include <op25_repeater/gardner_costas_cc.h>
+#include "../../op25_repeater/include/op25_repeater/gardner_costas_cc.h"
 
 #include <gnuradio/msg_queue.h>
 #include <gnuradio/message.h>
