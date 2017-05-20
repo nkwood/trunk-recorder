@@ -23,7 +23,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 
   double symbol_rate         = 4800;
   double samples_per_symbol  = 6;
-  double system_channel_rate = symbol_rate * samples_per_symbol;
+  double system_channel_rate = 12500; // symbol_rate * samples_per_symbol;
   double symbol_deviation    = 600.0;
   int initial_decim      = floor(samp_rate / 240000);
   double initial_rate = double(samp_rate) / double(initial_decim);
@@ -31,10 +31,11 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   double resampled_rate = double(initial_rate) / double(decim);
   qpsk_mod = qpsk;
 
-  double channel_width = 28800;
-  double transition_width = 100;
+
+  double channel_width = 12500;
+  double transition_width = 1000;
   double attenuation = 60;
-  unsigned int channels = floor(samp_rate / channel_width);
+  unsigned int channels = floor(samp_rate / channel_width); // 800
 
   int channel_offset = floor(offset / channel_width);
   unsigned int channel = 0;
@@ -72,8 +73,8 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 
   std::vector<int> channel_map;
   channel_map.assign(1, channel);
-  BOOST_LOG_TRIVIAL(info) << channel_map[0];
-  // pf_channelizer->set_channel_map(channel_map);
+  BOOST_LOG_TRIVIAL(info) << "Channel map: " << channel_map[0];
+  pf_channelizer->set_channel_map(channel_map);
 
   // inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 100, gr::filter::firdes::WIN_HANN);
 
@@ -115,27 +116,27 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   // width of 0.5.  If rate < 1, we need to filter to less
   // than half the output signal's bw to avoid aliasing, so
   // the half-band here is 0.5*rate.
-  double percent = 0.80;
+//   double percent = 0.80;
 
-  if (arb_rate <= 1) {
-    double halfband = 0.5 * arb_rate;
-    double bw       = percent * halfband;
-    double tb       = (percent / 2.0) * halfband;
+//   if (arb_rate <= 1) {
+//     double halfband = 0.5 * arb_rate;
+//     double bw       = percent * halfband;
+//     double tb       = (percent / 2.0) * halfband;
 
 
-    // As we drop the bw factor, the optfir filter has a harder time converging;
-    // using the firdes method here for better results.
-    arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten,
-                                              gr::filter::firdes::WIN_BLACKMAN_HARRIS);
-//    gr::filter::rational_resampler_base_ccc::sptr rational_resampler = gr::filter::rational_resampler_base_ccc::make(system_channel_rate, post_channel_rate, []);
+//     // As we drop the bw factor, the optfir filter has a harder time converging;
+//     // using the firdes method here for better results.
+//     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten,
+//                                               gr::filter::firdes::WIN_BLACKMAN_HARRIS);
+// //    gr::filter::rational_resampler_base_ccc::sptr rational_resampler = gr::filter::rational_resampler_base_ccc::make(system_channel_rate, post_channel_rate, []);
 
-    // double tap_total = inital_lpf_taps.size() + channel_lpf_taps.size() + arb_taps.size();
-    BOOST_LOG_TRIVIAL(info) << "P25 Trunking " << " ARB Taps: " << arb_taps.size();
-  } else {
-    BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
-  }
+//     // double tap_total = inital_lpf_taps.size() + channel_lpf_taps.size() + arb_taps.size();
+//     BOOST_LOG_TRIVIAL(info) << "P25 Trunking " << " ARB Taps: " << arb_taps.size();
+//   } else {
+//     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
+//   }
 
-  arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
+//   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
 
 
   agc = gr::analog::feedforward_agc_cc::make(16, 1.0);
@@ -160,22 +161,22 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   rescale = gr::blocks::multiply_const_ff::make((1 / (pi / 4)));
 
   // fm demodulator (needed in fsk4 case)
-  double fm_demod_gain = system_channel_rate / (2.0 * pi * symbol_deviation);
-  fm_demod = gr::analog::quadrature_demod_cf::make(fm_demod_gain);
+  // double fm_demod_gain = system_channel_rate / (2.0 * pi * symbol_deviation);
+  // fm_demod = gr::analog::quadrature_demod_cf::make(fm_demod_gain);
 
-  double symbol_decim = 1;
+  // double symbol_decim = 1;
 
-  for (int i = 0; i < samples_per_symbol; i++) {
-    sym_taps.push_back(1.0 / samples_per_symbol);
-  }
+  // for (int i = 0; i < samples_per_symbol; i++) {
+  //   sym_taps.push_back(1.0 / samples_per_symbol);
+  // }
 
-  sym_filter    =  gr::filter::fir_filter_fff::make(symbol_decim, sym_taps);
+  // sym_filter    =  gr::filter::fir_filter_fff::make(symbol_decim, sym_taps);
   tune_queue    = gr::msg_queue::make(2);
   traffic_queue = gr::msg_queue::make(2);
   rx_queue      = queue;
   const double l[] = { -2.0, 0.0, 2.0, 4.0 };
   std::vector<float> levels(l, l + sizeof(l) / sizeof(l[0]));
-  fsk4_demod = gr::op25_repeater::fsk4_demod_ff::make(tune_queue, system_channel_rate, symbol_rate);
+  // fsk4_demod = gr::op25_repeater::fsk4_demod_ff::make(tune_queue, system_channel_rate, symbol_rate);
   slicer     = gr::op25_repeater::fsk4_slicer_fb::make(levels);
 
   int udp_port               = 0;
@@ -215,13 +216,14 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
     for (int i=0; i < channels; ++i) {
       connect(s2ss_block, i, pf_channelizer, i);
     }
-    connect(pf_channelizer,  0, arb_resampler,        0);
+    connect(pf_channelizer,  0, agc,        0);
+    //connect(pf_channelizer,  0, arb_resampler,        0);
     // // BOOST_LOG_TRIVIAL(info) << "Connecting.";
     // for (int i=1; i<channels; ++i) {
     //   BOOST_LOG_TRIVIAL(info) << i;
     //   connect(pf_channelizer, i , null_sinks[i-1], 0);
     // }
-    connect(arb_resampler, 0, agc,                  0);
+    // connect(arb_resampler, 0, agc,                  0);
     connect(agc,           0, costas_clock,         0);
     connect(costas_clock,  0, diffdec,              0);
     connect(diffdec,       0, to_float,             0);
