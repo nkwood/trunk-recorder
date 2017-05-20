@@ -14,21 +14,21 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
                     gr::io_signature::make(0, 0, sizeof(float)))
 {
 
-  this->sys_num = sys_num;
-  chan_freq    = f;
-  center_freq  = c;
+  this->sys_num  = sys_num;
+  chan_freq      = f;
+  center_freq    = c;
   long samp_rate = s;
 
   double offset = chan_freq - center_freq;
 
   double symbol_rate         = 4800;
-  double samples_per_symbol  = 6;
+  // double samples_per_symbol  = 6;
   double system_channel_rate = 12500; // symbol_rate * samples_per_symbol;
   double symbol_deviation    = 600.0;
-  int initial_decim      = floor(samp_rate / 240000);
-  double initial_rate = double(samp_rate) / double(initial_decim);
-  int decim = floor(initial_rate / system_channel_rate);
-  double resampled_rate = double(initial_rate) / double(decim);
+  // int initial_decim      = floor(samp_rate / 240000);
+  // double initial_rate = double(samp_rate) / double(initial_decim);
+  // int decim = floor(initial_rate / system_channel_rate);
+  // double resampled_rate = double(initial_rate) / double(decim);
   qpsk_mod = qpsk;
 
 
@@ -49,7 +49,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 
   float oversample_rate = 1.0; // float(channels)/71.0;
 
-  std::vector<float> sym_taps;
+  // std::vector<float> sym_taps;
   const double pi = M_PI; // boost::math::constants::pi<double>();
 
   double gain_mu      = 0.025;
@@ -93,10 +93,10 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   // gr::filter::rational_resampler_base_ccc::sptr rational_resampler = gr::filter::rational_resampler_base_ccc::make(system_channel_rate, post_channel_rate, []);
 
 
-  double arb_rate  = system_channel_rate / post_channel_rate;
+  // double arb_rate  = system_channel_rate / post_channel_rate;
 
-  double arb_size  = 32;
-  double arb_atten = 100;
+  // double arb_size  = 32;
+  // double arb_atten = 100;
   BOOST_LOG_TRIVIAL(info) << "P25 Trunking Sample Rate: " << samp_rate << " System Rate: " << system_channel_rate << " Post Channel Rate: " << post_channel_rate;
   BOOST_LOG_TRIVIAL(info) << "P25 Trunking Channels: " << channels  << " Channel: " << channel; 
   BOOST_LOG_TRIVIAL(info) << "P25 Trunking Taps: " << filter_taps.size();
@@ -171,8 +171,8 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   // }
 
   // sym_filter    =  gr::filter::fir_filter_fff::make(symbol_decim, sym_taps);
-  tune_queue    = gr::msg_queue::make(2);
-  traffic_queue = gr::msg_queue::make(2);
+  // tune_queue    = gr::msg_queue::make(2);
+  // traffic_queue = gr::msg_queue::make(2);
   rx_queue      = queue;
   const double l[] = { -2.0, 0.0, 2.0, 4.0 };
   std::vector<float> levels(l, l + sizeof(l) / sizeof(l[0]));
