@@ -1,6 +1,7 @@
 
 #include "p25_trunking.h"
 #include <boost/log/trivial.hpp>
+#include <array>
 
 
 p25_trunking_sptr make_p25_trunking(double freq, double center, long s,  gr::msg_queue::sptr queue, bool qpsk, int sys_num)
@@ -22,17 +23,18 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   double offset = chan_freq - center_freq;
 
   double symbol_rate         = 4800;
-  // double samples_per_symbol  = 6;
-  double system_channel_rate = 12500; // symbol_rate * samples_per_symbol;
+  double samples_per_symbol  = 10;
+  double system_channel_rate = symbol_rate * samples_per_symbol;
   double symbol_deviation    = 600.0;
-  // int initial_decim      = floor(samp_rate / 240000);
-  // double initial_rate = double(samp_rate) / double(initial_decim);
-  // int decim = floor(initial_rate / system_channel_rate);
-  // double resampled_rate = double(initial_rate) / double(decim);
+  double channel_width = 12500;
+  float oversample_rate = 4.0; // 50k
+  int initial_decim      = floor(samp_rate / (channel_width*oversample_rate));
+  double initial_rate = double(samp_rate) / double(initial_decim);
+  int decim = floor(initial_rate / system_channel_rate);
+  double resampled_rate = double(initial_rate) / double(decim);
   qpsk_mod = qpsk;
 
-
-  double channel_width = 12500;
+  
   double transition_width = 1000;
   double attenuation = 60;
   unsigned int channels = floor(samp_rate / channel_width); // 800
@@ -47,9 +49,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   }
   double channel_rate = samp_rate / channels;
 
-  float oversample_rate = 1.0; // float(channels)/71.0;
-
-  // std::vector<float> sym_taps;
+  std::vector<float> sym_taps;
   const double pi = M_PI; // boost::math::constants::pi<double>();
 
   double gain_mu      = 0.025;
@@ -63,7 +63,7 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 
   gr::blocks::stream_to_streams::sptr s2ss_block = gr::blocks::stream_to_streams::make(sizeof(gr_complex), channels);
 
-  // BOOST_LOG_TRIVIAL(info) << "P25 Trunking Channels: " << channels << " Channel: " << channel <<  "Oversample rate: " << oversample_rate;
+  BOOST_LOG_TRIVIAL(info) << "P25 Trunking Channels: " << channels << " Channel: " << channel <<  " Oversample rate: " << oversample_rate;
 
   //gr::filter::pfb_decimator_ccf::sptr pf_decimator = gr::filter::pfb_decimator_ccf::make(channels, filter_taps, channel);
 
@@ -93,18 +93,20 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   // gr::filter::rational_resampler_base_ccc::sptr rational_resampler = gr::filter::rational_resampler_base_ccc::make(system_channel_rate, post_channel_rate, []);
 
 
-  // double arb_rate  = system_channel_rate / post_channel_rate;
+  double arb_rate  = (double(system_channel_rate) / resampled_rate);
 
-  // double arb_size  = 32;
-  // double arb_atten = 100;
-  BOOST_LOG_TRIVIAL(info) << "P25 Trunking Sample Rate: " << samp_rate << " System Rate: " << system_channel_rate << " Post Channel Rate: " << post_channel_rate;
+  double arb_size  = 32;
+  double arb_atten = 100;
+  BOOST_LOG_TRIVIAL(info) << "P25 Trunking Sample Rate: " << samp_rate << " System Rate: " << system_channel_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << initial_decim << " Decimation: " << decim << " ARB Rate: " << arb_rate;
   BOOST_LOG_TRIVIAL(info) << "P25 Trunking Channels: " << channels  << " Channel: " << channel; 
-  BOOST_LOG_TRIVIAL(info) << "P25 Trunking Taps: " << filter_taps.size();
+  BOOST_LOG_TRIVIAL(info) << "PFB Taps: " << filter_taps.size();
 
-  // gr::blocks::null_sink::sptr null_sinks[163];
-  // for (int i=0; i<channels; ++i) {
-  //   null_sinks[i] = gr::blocks::null_sink::make (sizeof (gr_complex));
-  // }
+  // gr::blocks::null_sink::sptr null_sinks[channels-1];
+  std::array<gr::blocks::null_sink::sptr, channels-1> null_sinks
+  for (auto& sink : null_sinks) {
+     sink = gr::blocks::null_sink::make (sizeof (gr_complex));
+   }
+   BOOST_LOG_TRIVIAL(info) << "Made sinks.";
 
   // gr::blocks::null_sink::sptr my_null_sink = gr::blocks::null_sink::make (sizeof (gr_complex));
   // BOOST_LOG_TRIVIAL(info) << "\t P25 Recorder Initial Rate: "<< initial_rate << " Resampled Rate: " << resampled_rate  << " Initial Decimation: " << initial_decim << " Decimation: " << decim << " System Rate: " << system_channel_rate << " ARB Rate: " << arb_rate;
@@ -116,27 +118,27 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   // width of 0.5.  If rate < 1, we need to filter to less
   // than half the output signal's bw to avoid aliasing, so
   // the half-band here is 0.5*rate.
-//   double percent = 0.80;
+  double percent = 0.80;
 
-//   if (arb_rate <= 1) {
-//     double halfband = 0.5 * arb_rate;
-//     double bw       = percent * halfband;
-//     double tb       = (percent / 2.0) * halfband;
+  if (arb_rate <= 1) {
+    double halfband = 0.5 * arb_rate;
+    double bw       = percent * halfband;
+    double tb       = (percent / 2.0) * halfband;
 
 
-//     // As we drop the bw factor, the optfir filter has a harder time converging;
-//     // using the firdes method here for better results.
-//     arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten,
-//                                               gr::filter::firdes::WIN_BLACKMAN_HARRIS);
-// //    gr::filter::rational_resampler_base_ccc::sptr rational_resampler = gr::filter::rational_resampler_base_ccc::make(system_channel_rate, post_channel_rate, []);
+    // As we drop the bw factor, the optfir filter has a harder time converging;
+    // using the firdes method here for better results.
+    arb_taps = gr::filter::firdes::low_pass_2(arb_size, arb_size, bw, tb, arb_atten,
+                                              gr::filter::firdes::WIN_BLACKMAN_HARRIS);
+//    gr::filter::rational_resampler_base_ccc::sptr rational_resampler = gr::filter::rational_resampler_base_ccc::make(system_channel_rate, post_channel_rate, []);
 
-//     // double tap_total = inital_lpf_taps.size() + channel_lpf_taps.size() + arb_taps.size();
-//     BOOST_LOG_TRIVIAL(info) << "P25 Trunking " << " ARB Taps: " << arb_taps.size();
-//   } else {
-//     BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
-//   }
+    // double tap_total = inital_lpf_taps.size() + channel_lpf_taps.size() + arb_taps.size();
+    BOOST_LOG_TRIVIAL(info) << "P25 Trunking " << " ARB Taps: " << arb_taps.size();
+  } else {
+    BOOST_LOG_TRIVIAL(error) << "Something is probably wrong! Resampling rate too low";
+  }
 
-//   arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
+  arb_resampler = gr::filter::pfb_arb_resampler_ccf::make(arb_rate, arb_taps);
 
 
   agc = gr::analog::feedforward_agc_cc::make(16, 1.0);
@@ -164,15 +166,15 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   // double fm_demod_gain = system_channel_rate / (2.0 * pi * symbol_deviation);
   // fm_demod = gr::analog::quadrature_demod_cf::make(fm_demod_gain);
 
-  // double symbol_decim = 1;
+  double symbol_decim = 1;
 
-  // for (int i = 0; i < samples_per_symbol; i++) {
-  //   sym_taps.push_back(1.0 / samples_per_symbol);
-  // }
+  for (int i = 0; i < samples_per_symbol; i++) {
+    sym_taps.push_back(1.0 / samples_per_symbol);
+  }
 
-  // sym_filter    =  gr::filter::fir_filter_fff::make(symbol_decim, sym_taps);
-  // tune_queue    = gr::msg_queue::make(2);
-  // traffic_queue = gr::msg_queue::make(2);
+  sym_filter    =  gr::filter::fir_filter_fff::make(symbol_decim, sym_taps);
+  tune_queue    = gr::msg_queue::make(2);
+  traffic_queue = gr::msg_queue::make(2);
   rx_queue      = queue;
   const double l[] = { -2.0, 0.0, 2.0, 4.0 };
   std::vector<float> levels(l, l + sizeof(l) / sizeof(l[0]));
@@ -216,20 +218,21 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
     for (int i=0; i < channels; ++i) {
       connect(s2ss_block, i, pf_channelizer, i);
     }
-    connect(pf_channelizer,  0, agc,        0);
-    //connect(pf_channelizer,  0, arb_resampler,        0);
+    // connect(pf_channelizer,  0, agc,        0);
+    connect(pf_channelizer,  0, arb_resampler,        0);
     // // BOOST_LOG_TRIVIAL(info) << "Connecting.";
-    // for (int i=1; i<channels; ++i) {
-    //   BOOST_LOG_TRIVIAL(info) << i;
-    //   connect(pf_channelizer, i , null_sinks[i-1], 0);
-    // }
-    // connect(arb_resampler, 0, agc,                  0);
+    for (int i=1; i<channels-1; ++i) {
+       BOOST_LOG_TRIVIAL(info) << i;
+       connect(pf_channelizer, i , null_sinks[i-1], 0);
+     }
+    connect(arb_resampler, 0, agc,                  0);
     connect(agc,           0, costas_clock,         0);
     connect(costas_clock,  0, diffdec,              0);
     connect(diffdec,       0, to_float,             0);
     connect(to_float,      0, rescale,              0);
     connect(rescale,       0, slicer,               0);
     connect(slicer,        0, op25_frame_assembler, 0);
+    BOOST_LOG_TRIVIAL(info) << "Waiting...";
 
 }
 
