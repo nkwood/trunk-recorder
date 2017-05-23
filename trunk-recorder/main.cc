@@ -195,6 +195,8 @@ void load_config(string config_file)
       BOOST_LOG_TRIVIAL(info) << "Talkgroups File: " << system->get_talkgroups_file();
       system->set_record_unknown(node.second.get<bool>("recordUnknown",true));
       BOOST_LOG_TRIVIAL(info) << "Record Unkown Talkgroups: " << system->get_record_unknown();
+      system->set_record_encrypted(node.second.get<bool>("recordEncrypted",false));
+      BOOST_LOG_TRIVIAL(info) << "Record calls with p-bit (privacy) set: " << system->get_record_encrypted();
       systems.push_back(system);
 
       system->set_bandplan(node.second.get<std::string>("bandplan", "800_standard"));
@@ -392,7 +394,7 @@ void start_recorder(Call *call, TrunkMessage message, System *sys) {
   // << "\tTDMA: " << call->get_tdma() <<  "\tEncrypted: " <<
   // call->get_encrypted() << "\tFreq: " << call->get_freq();
 
-  if (call->get_encrypted() == true) {
+  if ((call->get_encrypted() == true) && (sys->get_record_encrypted() == false)) {
     BOOST_LOG_TRIVIAL(info) << "[" << sys->get_short_name() << "]"
                             << "\tTG: " << call->get_talkgroup()
                             << "\tFreq: " << call->get_freq()

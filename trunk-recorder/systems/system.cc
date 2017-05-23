@@ -117,6 +117,14 @@ void System::set_record_unknown(bool unknown) {
   this->record_unknown = unknown;
 }
 
+bool System::get_record_encrypted() {
+  return this->record_encrypted;
+}
+
+void System::set_record_encrypted(bool record_encrypted) {
+  this->record_encrypted = record_encrypted;
+}
+
 std::string System::get_system_type() {
   return this->system_type;
 }
