@@ -568,8 +568,9 @@ if (call->get_tdma_slot() != message.tdma_slot) {
 }
   if (message.freq != call->get_freq()) {
   if ((source->get_min_hz() <= message.freq) && (source->get_max_hz() >= message.freq)) {
-    recorder->tune_offset(message.freq);
-
+    // recorder->tune_offset(message.freq);
+      source->update_channel_map(recorder->channel_port, message.freq);
+      recorder->tune_offset(message.freq);
       // only set the call freq, if the recorder can be retuned.
       // set the call to the new Freq / TDMA slot
       call->set_freq(message.freq);
@@ -878,6 +879,8 @@ void retune_system(System *system) {
     } else if (system->get_system_type() == "p25") {
       // what you really need to do is go through all of the sources to find
       // the one with the right frequencies
+      // system->p25_trunking->tune_offset(control_channel_freq);
+      source->update_channel_map(system->channel_port, control_channel_freq);
       system->p25_trunking->tune_offset(control_channel_freq);
     } else {
       BOOST_LOG_TRIVIAL(error) << "\t - Unkown system type for Retune";
@@ -1081,7 +1084,9 @@ bool monitor_system() {
                                                      msg_queue,
                                                      source->get_qpsk_mod(),
                                                      system->get_sys_num());
-            tb->connect(source->get_src_block(), 0, system->p25_trunking, 0);
+            system->p25_trunking->channel_port = source->channel_port_counter++;
+            tb->connect(source->channelizer, system->p25_trunking->channel_port, system->p25_trunking, 0);
+            source->update_channel_map(system->p25_trunking->channel_port, control_chhanel_freq);
           }
 
           // break out of the For Loop

@@ -71,7 +71,7 @@ public:
 	virtual double get_current_length(){return 0;};
 	virtual void clear(){};
 	int num;
+	int channel_port;
 };
-
 
 #endif

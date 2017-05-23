@@ -20,30 +20,30 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   long samp_rate = s;
   qpsk_mod = qpsk;
 
-  double offset              = chan_freq - center_freq;
+  // double offset              = chan_freq - center_freq;
   double channel_width       = 12500;
   double symbol_rate         = 4800;
   double samples_per_symbol  = channel_width / symbol_rate;   // Is it ok if this is not an integer?
   double system_channel_rate = symbol_rate * samples_per_symbol;
   double symbol_deviation    = 600.0;
-  float oversample_rate      = 1.0;
-  double transition_width    = 10000; // Pretty loose, but assume no adjacent channels to save CPU.
-  double attenuation         = 60;
-  int initial_decim          = floor(samp_rate / (channel_width*oversample_rate));
-  double initial_rate        = double(samp_rate) / double(initial_decim);
-  int decim                  = floor(initial_rate / system_channel_rate);
-  double resampled_rate      = double(initial_rate) / double(decim);
-  unsigned int channels      = floor(samp_rate / channel_width);
-  int channel_offset = floor(offset / channel_width);
-  unsigned int channel = 0;
+  // float oversample_rate      = 1.0;
+  // double transition_width    = 10000; // Pretty loose, but assume no adjacent channels to save CPU.
+  // double attenuation         = 60;
+  // int initial_decim          = floor(samp_rate / (channel_width*oversample_rate));
+  // double initial_rate        = double(samp_rate) / double(initial_decim);
+  // int decim                  = floor(initial_rate / system_channel_rate);
+  // double resampled_rate      = double(initial_rate) / double(decim);
+  // unsigned int channels      = floor(samp_rate / channel_width);
+  // int channel_offset = floor(offset / channel_width);
+  // unsigned int channel = 0;
 
-  if (channel_offset < 0) {
-    channel = channels+channel_offset;
-  }
-  else {
-    channel = channel_offset;
-  }
-  double channel_rate = samp_rate / channels;
+  // if (channel_offset < 0) {
+  //   channel = channels+channel_offset;
+  // }
+  // else {
+  //   channel = channel_offset;
+  // }
+  // double channel_rate = samp_rate / channels;
 
   // std::vector<float> sym_taps;
   const double pi = M_PI; // boost::math::constants::pi<double>();
@@ -54,23 +54,23 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 
   // baseband_amp = gr::blocks::multiply_const_ff::make(bb_gain);
 
-  std::vector<float> filter_taps;
-  filter_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, channel_width/2, transition_width, attenuation, gr::filter::firdes::WIN_HANN);
+  // std::vector<float> filter_taps;
+  // filter_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, channel_width/2, transition_width, attenuation, gr::filter::firdes::WIN_HANN);
 
-  gr::blocks::stream_to_streams::sptr s2ss_block = gr::blocks::stream_to_streams::make(sizeof(gr_complex), channels);
+  // gr::blocks::stream_to_streams::sptr s2ss_block = gr::blocks::stream_to_streams::make(sizeof(gr_complex), channels);
 
-  BOOST_LOG_TRIVIAL(info) << "P25 Trunking Channels: " << channels << " Channel: " << channel <<  " Oversample rate: " << oversample_rate;
+  // BOOST_LOG_TRIVIAL(info) << "P25 Trunking Channels: " << channels << " Channel: " << channel <<  " Oversample rate: " << oversample_rate;
 
   //gr::filter::pfb_decimator_ccf::sptr pf_decimator = gr::filter::pfb_decimator_ccf::make(channels, filter_taps, channel);
 
 
-  gr::filter::pfb_channelizer_ccf::sptr pf_channelizer = gr::filter::pfb_channelizer_ccf::make(channels, filter_taps, oversample_rate);
-  pf_channelizer->set_tag_propagation_policy(gr::block::tag_propagation_policy_t(0));  // I want the two weeks of my life back.
+  // gr::filter::pfb_channelizer_ccf::sptr pf_channelizer = gr::filter::pfb_channelizer_ccf::make(channels, filter_taps, oversample_rate);
+  // pf_channelizer->set_tag_propagation_policy(gr::block::tag_propagation_policy_t(0));  // I want the two weeks of my life back.
 
-  std::vector<int> channel_map;
-  channel_map.assign(1, channel);
-  BOOST_LOG_TRIVIAL(info) << "Channel map: " << channel_map[0];
-  pf_channelizer->set_channel_map(channel_map);
+  // std::vector<int> channel_map;
+  // channel_map.assign(1, channel);
+  // BOOST_LOG_TRIVIAL(info) << "Channel map: " << channel_map[0];
+  // pf_channelizer->set_channel_map(channel_map);
 
   // inital_lpf_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, 96000, 25000, 100, gr::filter::firdes::WIN_HANN);
 
@@ -93,9 +93,9 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
 
   // double arb_size  = 32;
   // double arb_atten = 100;
-  BOOST_LOG_TRIVIAL(info) << "P25 Trunking Sample Rate: " << samp_rate << " System Rate: " << system_channel_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << initial_decim << " Decimation: " << decim;
+  // BOOST_LOG_TRIVIAL(info) << "P25 Trunking Sample Rate: " << samp_rate << " System Rate: " << system_channel_rate << " Resampled Rate: " << resampled_rate << " Initial Decimation: " << initial_decim << " Decimation: " << decim;
   // BOOST_LOG_TRIVIAL(info) << "P25 Trunking Channels: " << channels  << " Channel: " << channel; 
-  BOOST_LOG_TRIVIAL(info) << "PFB Taps: " << filter_taps.size();
+  // BOOST_LOG_TRIVIAL(info) << "PFB Taps: " << filter_taps.size();
 
   // gr::blocks::null_sink::sptr null_sinks[channels-1];
   // std::array<gr::blocks::null_sink::sptr, channels-1> null_sinks
@@ -209,12 +209,13 @@ p25_trunking::p25_trunking(double f, double c, long s, gr::msg_queue::sptr queue
   //   connect(rescale,       0, slicer,               0);
   //   connect(slicer,        0, op25_frame_assembler, 0);
   // }
-    connect(self(),        0, s2ss_block,           0);
-    for (int i=0; i < channels; ++i) {
-      connect(s2ss_block, i, pf_channelizer, i);
-    }
+    // connect(self(),        0, s2ss_block,           0);
+    // for (int i=0; i < channels; ++i) {
+    //   connect(s2ss_block, i, pf_channelizer, i);
+    // }
     // connect(pf_channelizer,  0, agc,        0);
-    connect(pf_channelizer,  0, agc,        0);
+    // connect(pf_channelizer,  0, agc,        0);
+    connect(self(),  0, agc,        0);
     // // BOOST_LOG_TRIVIAL(info) << "Connecting.";
     // for (int i=1; i<channels-1; ++i) {
     //    BOOST_LOG_TRIVIAL(info) << i;
@@ -240,5 +241,5 @@ void p25_trunking::tune_offset(double f) {
   chan_freq = f;
   int offset_amount = (f - center_freq);
   // prefilter->set_center_freq(offset_amount);
-  BOOST_LOG_TRIVIAL(info) << "P25 Trunking Retune requested to " << chan_freq;
+  BOOST_LOG_TRIVIAL(error) << "P25 Trunking Retune requested while using channels: " << chan_freq;
 }

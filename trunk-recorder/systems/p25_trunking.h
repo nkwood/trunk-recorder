@@ -88,6 +88,7 @@ public:
   double get_freq();
   void   enable();
 
+	int channel_port;
 
   gr::msg_queue::sptr tune_queue;
   gr::msg_queue::sptr traffic_queue;

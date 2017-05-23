@@ -2,7 +2,6 @@
 
 int Source::rec_num = 0;
 
-
 void Source::set_antenna(std::string ant)
 {
   antenna = ant;
@@ -206,8 +205,9 @@ void Source::create_analog_recorders(gr::top_block_sptr tb, int r) {
 
   for (int i = 0; i < max_analog_recorders; i++) {
     analog_recorder_sptr log = make_analog_recorder(this);
+    log->channel_port = channel_port_counter++;
     analog_recorders.push_back(log);
-    tb->connect(source_block, 0, log, 0);
+    tb->connect(channelizer, log->channel_port, log, 0);
   }
 }
 
@@ -239,8 +239,58 @@ void Source::create_digital_recorders(gr::top_block_sptr tb, int r) {
   for (int i = 0; i < max_digital_recorders; i++) {
     p25_recorder_sptr log = make_p25_recorder(this);
     log->num = rec_num++;
+    log->channel_port = channel_port_counter++;
     digital_recorders.push_back(log);
-    tb->connect(source_block, 0, log, 0);
+    tb->connect(channelizer, log->channel_port, log, 0);
+  }
+}
+
+int Source::freq_to_channel(double freq) {
+  unsigned int channel = 0;
+  double offset = freq - center;
+  int channel_offset = floor(offset / channel_width);
+  if (channel_offset < 0) {
+    channel = channels+channel_offset;
+  }
+  else {
+    channel = channel_offset;
+  }
+  return channel;
+}
+
+void Source::update_channel_map(int channel_port, double freq) {
+  channel_map.resize(channel_port_counter);
+  try {
+    channel_map.at(channel_port) = freq_to_channel(freq));
+  }
+  catch(std::out_of_range o) {
+    BOOST_LOG_TRIVIAL(error) << "Error mapping channel frequency" << o.what() << std::endl;
+  }
+  channelizer->set_channel_map(channel_map);
+}
+
+void Source::create_channelizer(gr::top_block_sptr tb) {
+  long samp_rate = actual_rate;
+  channel_width = 12500;
+  float oversample_rate = 1.0;
+  double transition_width = 10000; // Pretty loose, but assume no adjacent channels to save CPU.
+  double attenuation = 60;
+  channels = floor(samp_rate / channel_width);
+  channel_map.reserve(channels);
+  double channel_rate = samp_rate / channels;
+
+  std::vector<float> filter_taps;
+  filter_taps = gr::filter::firdes::low_pass_2(1.0, samp_rate, channel_width/2, transition_width, attenuation, gr::filter::firdes::WIN_HANN);
+  gr::blocks::stream_to_streams::sptr s2ss_block = gr::blocks::stream_to_streams::make(sizeof(gr_complex), channels);
+  channelizer = gr::filter::pfb_channelizer_ccf::make(channels, filter_taps, oversample_rate);
+  channelizer->set_tag_propagation_policy(gr::block::tag_propagation_policy_t(0));  // I want the two weeks of my life back.
+
+  BOOST_LOG_TRIVIAL(info) << "Channelizer channels: " << channels << "Channel width: " << channel_width <<  " Oversample rate: " << oversample_rate << " Channel rate: " << channel_rate;
+  BOOST_LOG_TRIVIAL(info) << "Channelizer taps: " << filter_taps.size();
+
+  tb->connect(source_block, 0, s2ss_block, 0);
+  for (int i=0; i < channels; ++i) {
+    tb->connect(s2ss_block, i, channelizer, i);
   }
 }
 
@@ -249,9 +299,9 @@ void Source::create_debug_recorders(gr::top_block_sptr tb, int r) {
 
   for (int i = 0; i < max_debug_recorders; i++) {
     debug_recorder_sptr log = make_debug_recorder(this);
-
+    log->channel_port = channel_port_counter++;
     debug_recorders.push_back(log);
-    tb->connect(source_block, 0, log, 0);
+    tb->connect(channelizer, log->channel_port, log, 0);
   }
 }
 
@@ -361,6 +411,7 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
   driver = drv;
   device = dev;
   config = cfg;
+  channel_port_counter = 0;
 
   if (driver == "osmosdr") {
     osmosdr::source::sptr osmo_src;
@@ -406,11 +457,6 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
        }
        BOOST_LOG_TRIVIAL(info) << "Gain Stage: " << gain_name << " supported values: " <<  gain_opt_str;
     }
-
-
-
-
-
     source_block = osmo_src;
   }
 
@@ -426,8 +472,6 @@ Source::Source(double c, double r, double e, std::string drv, std::string dev, C
     BOOST_LOG_TRIVIAL(info) << "Actual sample rate: " << actual_rate;
     BOOST_LOG_TRIVIAL(info) << "Tunning to " << center + error << "hz";
     usrp_src->set_center_freq(center + error, 0);
-
-
     source_block = usrp_src;
   }
 }
