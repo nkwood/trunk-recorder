@@ -880,7 +880,7 @@ void retune_system(System *system) {
       // what you really need to do is go through all of the sources to find
       // the one with the right frequencies
       // system->p25_trunking->tune_offset(control_channel_freq);
-      source->update_channel_map(system->channel_port, control_channel_freq);
+      source->update_channel_map(system->p25_trunking->channel_port, control_channel_freq);
       system->p25_trunking->tune_offset(control_channel_freq);
     } else {
       BOOST_LOG_TRIVIAL(error) << "\t - Unkown system type for Retune";
@@ -1086,7 +1086,7 @@ bool monitor_system() {
                                                      system->get_sys_num());
             system->p25_trunking->channel_port = source->channel_port_counter++;
             tb->connect(source->channelizer, system->p25_trunking->channel_port, system->p25_trunking, 0);
-            source->update_channel_map(system->p25_trunking->channel_port, control_chhanel_freq);
+            source->update_channel_map(system->p25_trunking->channel_port, control_channel_freq);
           }
 
           // break out of the For Loop

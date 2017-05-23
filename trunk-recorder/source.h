@@ -36,8 +36,7 @@ class Source {
   bool qpsk_mod;
   int silence_frames;
   unsigned int channels;
-  double channel_width;
-  int channel_port_counter;
+
   std::vector<int> channel_map;
   Config *config;
 
@@ -48,9 +47,12 @@ class Source {
   std::string device;
   std::string antenna;
   gr::basic_block_sptr source_block;
-  gr::filter::pfb_channelizer_ccf::sptr channelizer;
+
 
 public:
+  gr::filter::pfb_channelizer_ccf::sptr channelizer;
+  double channel_width;
+  int channel_port_counter;
   int get_num_available_recorders();
   Source(double c, double r, double e, std::string driver, std::string device,
          Config *cfg);

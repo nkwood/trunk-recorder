@@ -261,7 +261,7 @@ int Source::freq_to_channel(double freq) {
 void Source::update_channel_map(int channel_port, double freq) {
   channel_map.resize(channel_port_counter);
   try {
-    channel_map.at(channel_port) = freq_to_channel(freq));
+    channel_map.at(channel_port) = freq_to_channel(freq);
   }
   catch(std::out_of_range o) {
     BOOST_LOG_TRIVIAL(error) << "Error mapping channel frequency" << o.what() << std::endl;
