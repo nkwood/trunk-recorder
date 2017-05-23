@@ -31,7 +31,6 @@
 #include <gnuradio/analog/pwr_squelch_cc.h>
 #include <gnuradio/analog/pwr_squelch_ff.h>
 
-
 #include <gnuradio/filter/pfb_arb_resampler_ccf.h>
 
 

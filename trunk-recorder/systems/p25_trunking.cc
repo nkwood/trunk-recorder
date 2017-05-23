@@ -1,7 +1,5 @@
 
 #include "p25_trunking.h"
-#include <boost/log/trivial.hpp>
-
 
 p25_trunking_sptr make_p25_trunking(double freq, double center, long s,  gr::msg_queue::sptr queue, bool qpsk, int sys_num)
 {

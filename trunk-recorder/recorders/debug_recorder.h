@@ -14,6 +14,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <gnuradio/io_signature.h>
 #include <gnuradio/hier_block2.h>
@@ -53,15 +54,17 @@
 #include <gnuradio/blocks/short_to_float.h>
 #include <gnuradio/blocks/char_to_float.h>
 
-#include <op25_repeater/fsk4_demod_ff.h>
-#include <op25_repeater/fsk4_slicer_fb.h>
-#include <op25_repeater/p25_frame_assembler.h>
-#include <op25_repeater/gardner_costas_cc.h>
-#include <op25_repeater/vocoder.h>
+
 #include <gnuradio/msg_queue.h>
 #include <gnuradio/message.h>
 #include <gnuradio/blocks/head.h>
 #include <gnuradio/blocks/file_sink.h>
+
+#include "../../op25_repeater/include/op25_repeater/fsk4_demod_ff.h"
+#include "../../op25_repeater/include/op25_repeater/fsk4_slicer_fb.h"
+#include "../../op25_repeater/include/op25_repeater/p25_frame_assembler.h"
+#include "../../op25_repeater/include/op25_repeater/gardner_costas_cc.h"
+#include "../../op25_repeater/include/op25_repeater/vocoder.h"
 
 #include "recorder.h"
 #include "../config.h"

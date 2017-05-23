@@ -1,7 +1,5 @@
 
 #include "p25_recorder.h"
-#include <boost/log/trivial.hpp>
-
 
 p25_recorder_sptr make_p25_recorder(Source *src)
 {

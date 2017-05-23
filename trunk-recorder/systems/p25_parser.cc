@@ -1,4 +1,5 @@
 #include "p25_parser.h"
+
 P25Parser::P25Parser() {}
 
 void P25Parser::add_channel(int chan_id, Channel temp_chan) {

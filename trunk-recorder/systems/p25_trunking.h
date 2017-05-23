@@ -15,6 +15,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <gnuradio/io_signature.h>
 #include <gnuradio/hier_block2.h>
@@ -26,6 +27,8 @@
 #include <gnuradio/blocks/null_sink.h>
 #include <gnuradio/blocks/stream_to_streams.h>
 
+#include <gnuradio/msg_queue.h>
+#include <gnuradio/message.h>
 
 #include <gnuradio/filter/firdes.h>
 #include <gnuradio/filter/fir_filter_ccf.h>
@@ -45,9 +48,6 @@
 #include "../../op25_repeater/include/op25_repeater/fsk4_slicer_fb.h"
 #include "../../op25_repeater/include/op25_repeater/p25_frame_assembler.h"
 #include "../../op25_repeater/include/op25_repeater/gardner_costas_cc.h"
-
-#include <gnuradio/msg_queue.h>
-#include <gnuradio/message.h>
 
 #include "../../gr_blocks/freq_xlating_fft_filter.h"
 

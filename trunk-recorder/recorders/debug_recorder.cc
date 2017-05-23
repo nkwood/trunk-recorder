@@ -1,6 +1,5 @@
 
 #include "debug_recorder.h"
-#include <boost/log/trivial.hpp>
 
 
 debug_recorder_sptr make_debug_recorder(Source *src)
