@@ -341,6 +341,7 @@ void load_config(string config_file)
       if (ppm != 0) {
         source->set_freq_corr(ppm);
       }
+      source->create_channelizer(tb);
       source->create_digital_recorders(tb, digital_recorders);
       source->create_analog_recorders(tb, analog_recorders);
       source->create_debug_recorders(tb, debug_recorders);
@@ -445,7 +446,7 @@ void start_recorder(Call *call, TrunkMessage message, System *sys) {
                                 << "\tTG: " << call->get_talkgroup()
                                 << "\tFreq: " << call->get_freq()
                                 << "\tStarting Recorder on Src: " << source->get_device();
-
+        source->update_channel_map(recorder->channel_port, call->get_freq());
         recorder->start(call, total_recorders);
         call->set_recorder(recorder);
         call->set_state(recording);

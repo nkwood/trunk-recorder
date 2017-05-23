@@ -400,7 +400,7 @@ void p25_recorder::start(Call *call, int n) {
                             << "\tRecorder: " << num
                             << "\tStarting P25 Recorder";
     int offset_amount = (chan_freq - center_freq);
-    prefilter->set_center_freq(offset_amount);
+    // prefilter->set_center_freq(offset_amount);
 
     wav_sink->open(call->get_filename());
     state = active;
