@@ -22,7 +22,7 @@
 #ifndef INCLUDED_OP25_FSK4_DEMOD_FF_H
 #define INCLUDED_OP25_FSK4_DEMOD_FF_H
 
-#include <op25_repeater/api.h>
+#include "api.h"
 #include <gnuradio/block.h>
 #include <gnuradio/msg_queue.h>
 

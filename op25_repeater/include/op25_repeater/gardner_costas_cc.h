@@ -22,7 +22,7 @@
 #ifndef INCLUDED_OP25_REPEATER_GARDNER_COSTAS_CC_H
 #define INCLUDED_OP25_REPEATER_GARDNER_COSTAS_CC_H
 
-#include <op25_repeater/api.h>
+#include "api.h"
 #include <gnuradio/block.h>
 
 namespace gr {

@@ -22,7 +22,7 @@
 #ifndef INCLUDED_OP25_REPEATER_P25_FRAME_ASSEMBLER_H
 #define INCLUDED_OP25_REPEATER_P25_FRAME_ASSEMBLER_H
 
-#include <op25_repeater/api.h>
+#include "api.h"
 #include <gnuradio/sync_interpolator.h>
 #include <gnuradio/msg_queue.h>
 

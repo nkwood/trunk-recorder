@@ -22,7 +22,7 @@
 #ifndef INCLUDED_OP25_REPEATER_FSK4_SLICER_FB_H
 #define INCLUDED_OP25_REPEATER_FSK4_SLICER_FB_H
 
-#include <op25_repeater/api.h>
+#include "api.h"
 #include <gnuradio/sync_block.h>
 
 namespace gr {

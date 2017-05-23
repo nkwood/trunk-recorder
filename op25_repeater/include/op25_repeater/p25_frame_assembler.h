@@ -22,8 +22,8 @@
 #ifndef INCLUDED_OP25_REPEATER_P25_FRAME_ASSEMBLER_H
 #define INCLUDED_OP25_REPEATER_P25_FRAME_ASSEMBLER_H
 
-#include <op25_repeater/rx_status.h>
-#include <op25_repeater/api.h>
+#include "rx_status.h"
+#include "api.h"
 #include <gnuradio/block.h>
 #include <gnuradio/msg_queue.h>
 

@@ -22,7 +22,7 @@
 #ifndef INCLUDED_OP25_REPEATER_VOCODER_H
 #define INCLUDED_OP25_REPEATER_VOCODER_H
 
-#include <op25_repeater/api.h>
+#include "api.h"
 #include <gnuradio/block.h>
 
 namespace gr {
