@@ -273,7 +273,7 @@ void Source::create_channelizer(gr::top_block_sptr tb) {
   long samp_rate = actual_rate;
   channel_width = 12500;
   float oversample_rate = 1.0;
-  double transition_width = 10000; // Pretty loose, but assume no adjacent channels to save CPU.
+  double transition_width = 5000; // Pretty loose, but assume no adjacent channels to save CPU.
   double attenuation = 60;
   channels = floor(samp_rate / channel_width);
   channel_map.reserve(channels);
